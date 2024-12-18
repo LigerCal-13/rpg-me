@@ -1,13 +1,9 @@
-/**
- * Copyright 2024 eglicky
- * @license Apache-2.0, see LICENSE for full text.
- */
-
 import { LitElement, html, css } from "lit";
 import { DDDSuper } from "@haxtheweb/d-d-d/d-d-d.js";
 import { I18NMixin } from "@haxtheweb/i18n-manager/lib/I18NMixin.js";
+import { WiredButton, WiredCombo, WiredItem, WiredCheckbox, WiredSlider } from "wired-elements";
 import "@haxtheweb/rpg-character/rpg-character.js";
-import "wired-elements";
+
 
 export class RpgMe extends DDDSuper(I18NMixin(LitElement)) {
   static get tag() {
@@ -16,30 +12,50 @@ export class RpgMe extends DDDSuper(I18NMixin(LitElement)) {
 
   constructor() {
     super();
-    this.title = "Design Your Character";
-    this.characterSettings = {
-      seed: "00000000",
-      base: 0, // 0 for no hair, 1 for hair
-      face: 0,
-      faceitem: 0,
-      hair: 0,
-      pants: 0,
-      shirt: 0,
-      skin: 0,
-      glasses: false,
-      hatColor: 0,
-      size: 200,
-      name: "",
-      fire: false,
-      walking: false,
-    };
-    this._applySeedToSettings(); // Ensure consistent character style on initialization
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlseed = urlParams.get('seed');
+    console.log(urlseed);
+    if (urlseed){
+      this.seed = urlseed;
+    }
+    else {
+      this.seed = "0000000000";
+    }
+    this.base = 0;
+    this.accessories = 0;
+    this.hair = 0;
+    this.face = 0;
+    this.faceItem = 0;
+    this.shirt = 0;
+    this.skin = 0;
+    this.pants = 0;
+    this.hatColor = 0;
+    this.hat = "none";
+    this.fire = false;
+    this.walking = false;
+    this.circle = false;
+    this.size = 200;
   }
 
   static get properties() {
     return {
-      ...super.properties,
-      characterSettings: { type: Object },
+      seed: { type: String },
+      hat: { type: String },
+      fire: { type: Boolean },
+      walking: { type: Boolean },
+      circle: { type: Boolean },
+      size: { type: Number},
+      accessories: { type: Number },
+      base: { type: Number },
+      face: { type: Number },
+      faceItem: { type: Number },
+      hair: { type: Number },
+      pants: { type: Number },
+      shirt: { type: Number },
+      skin: { type: Number },
+      size: { type: Number },
+      hatColor: { type: Number },
+      hat: { type: String },
     };
   }
 
@@ -49,93 +65,64 @@ export class RpgMe extends DDDSuper(I18NMixin(LitElement)) {
       css`
         :host {
           display: block;
-          font-family: var(--ddd-font-navigation);
+          color: var(--ddd-theme-primary);
+          background-color: var(--ddd-theme-accent);
+          padding: var(--ddd-spacing-4);
         }
         .container {
-          display: flex;
-          flex-wrap: wrap;
-          gap: var(--ddd-spacing-5);
-          justify-content: center;
-          align-items: flex-start;
-          padding: var(--ddd-spacing-5);
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: var(--ddd-spacing-4);
         }
-        .character-preview {
-          flex: 1;
-          min-width: 300px;
+        .character-panel {
           text-align: center;
-          position: relative;
         }
-        .character-preview rpg-character {
-          height: var(--character-size, 200px);
-          width: var(--character-size, 200px);
-          transition: height 0.3s ease, width 0.3s ease;
+        .inputs-panel {
+          background-color: var(--ddd-theme-background-secondary);
+          padding: var(--ddd-spacing-4);
         }
-        .seed-display {
-          position: absolute;
-          top: calc(-1 * var(--ddd-spacing-10));
-          left: 50%;
-          transform: translateX(-50%);
-          background-color: rgba(0, 0, 0, 0.7);
-          color: var(--ddd-theme-default-white);
-          padding: var(--ddd-spacing-1) var(--ddd-spacing-2);
-          border-radius: var(--ddd-spacing-1);
-          font-size: 0.9rem;
-          font-weight: bold;
-          pointer-events: none;
+        .dropdown-row {
+          display: flex;
+          gap: var(--ddd-spacing-4);
+          margin-bottom: var(--ddd-spacing-4);
         }
-        .controls {
+        .dropdown-container {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+        }
+        wired-combo {
           flex: 1;
-          min-width: 300px;
-          text-align: left;
+          width: 100%;
+          height: var(--ddd-spacing-10);
+          margin-bottom: var(--ddd-spacing-6);
+       
         }
-        wired-input,
-        wired-checkbox,
+        wired-item{
+          opacity: 1;
+        }
+  
+        wired-checkbox {
+          display: block;
+          margin-top: var(--ddd-spacing-4);
+          opacity: 1;
+        }
+        wired-button {
+          margin-top: var(--ddd-spacing-4);
+        }
         wired-slider {
           display: block;
           margin-bottom: var(--ddd-spacing-4);
           max-width: 300px;
         }
-        label {
-          display: block;
-          font-size: 14px;
-          font-weight: bold;
-          margin-bottom: var(--ddd-spacing-1);
-        }
-        button {
-          margin-top: var(--ddd-spacing-2);
-          padding: var(--ddd-spacing-2) var(--ddd-spacing-4);
-          cursor: pointer;
-          background-color: var(--ddd-theme-default-blue);
-          color: var(--ddd-theme-default-white);
-          border: 1px solid var(--ddd-theme-default-darkBlue);
-          border-radius: var(--ddd-spacing-1);
-          font-size: 16px;
-          transition: background-color 0.3s ease, border-color 0.3s ease;
-        }
-        button:hover {
-          background-color: var(--ddd-theme-default-darkBlue);
-          border-color: var(--ddd-theme-default-darkerBlue);
-        }
-        .character-name {
-          font-size: 1.5rem;
-          margin-bottom: var(--ddd-spacing-2);
-        }
-        .notification {
-          position: fixed;
-          bottom: var(--ddd-spacing-5);
-          right: var(--ddd-spacing-5);
-          background-color: var(--ddd-theme-default-green);
-          color: var(--ddd-theme-default-white);
-          padding: var(--ddd-spacing-2) var(--ddd-spacing-3);
-          border-radius: var(--ddd-spacing-1);
-          font-size: 14px;
-          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-          opacity: 0;
-          transition: opacity 0.5s ease-in-out;
-          z-index: 1000;
-        }
-        .notification.show {
+        wired-input {
+          width: 100%;
+          margin-bottom: var(--ddd-spacing-4);
           opacity: 1;
+        }
+        .seed-display {
+          margin-top: var(--ddd-spacing-2);
+          font-size: var(--ddd-font-size-m);
         }
       `,
     ];
@@ -144,198 +131,156 @@ export class RpgMe extends DDDSuper(I18NMixin(LitElement)) {
   render() {
     return html`
       <div class="container">
-        <div class="character-preview">
-          <div class="seed-display">Seed: ${this.characterSettings.seed}</div>
-          <div class="character-name">${this.characterSettings.name}</div>
+        <div class="character-panel">
           <rpg-character
-            literalseed
-            base="${this.characterSettings.base}"
-            face="${this.characterSettings.face}"
-            faceitem="${this.characterSettings.faceitem}"
-            hair="${this.characterSettings.hair}"
-            pants="${this.characterSettings.pants}"
-            shirt="${this.characterSettings.shirt}"
-            skin="${this.characterSettings.skin}"
-            hatColor="${this.characterSettings.hatColor}"
-            .fire="${this.characterSettings.fire}"
-            .walking="${this.characterSettings.walking}"
-            style="
-              --character-size: ${this.characterSettings.size}px;
-              --hat-color: hsl(${this.characterSettings.hatColor}, 100%, 50%);
-            "
+            seed="${this.seed}"
+            accessories="${this.accessories}"
+            base="${this.base}"
+            face="${this.face}"
+            faceitem="${this.faceItem}"
+            hair="${this.hair}"
+            pants="${this.pants}"
+            shirt="${this.shirt}"
+            skin="${this.skin}"
+            size="${this.size}"
+            hatColor="${this.hatColor}"
+            hat="${this.hat}"
+            ?fire="${this.fire}"
+            ?walking="${this.walking}"
+            ?circle="${this.circle}"
+            style="--character-size: ${this.size}px;" 
           ></rpg-character>
+          <div class="seed-display">Seed: ${this.seed}</div>
         </div>
-        <div class="controls">
-          <label for="characterNameInput">Character Name:</label>
-          <wired-input
-            id="characterNameInput"
-            type="text"
-            placeholder="Enter character name"
-            @input="${(e) => this._updateSetting('name', e.target.value)}"
-          ></wired-input>
+        <div class="inputs-panel">
+          <h2>Customize Your Character</h2>
+          <label for="accessories">Accessories:</label>
+          <wired-input type="number" min="0" max="9" value="${this.accessories}" @input="${this.updateProperty('accessories')}"></wired-input>
 
-          <label for="hairToggle">Hair:</label>
-          <wired-checkbox
-            id="hairToggle"
-            ?checked="${this.characterSettings.base === 1}"
-            @change="${(e) =>
-              this._updateSetting('base', e.target.checked ? 1 : 0)}"
-            >Has Hair</wired-checkbox>
-
-          <label for="size">Character Size:</label>
-          <wired-slider
-            id="size"
-            value="${this.characterSettings.size}"
-            min="100"
-            max="600"
-            @change="${(e) => this._updateSetting('size', parseInt(e.detail.value))}"
-          ></wired-slider>
+          <label for="base">Base:</label>
+          <wired-input type="number" min="0" max="1" value="${this.base}" @input="${this.updateProperty('base')}"></wired-input>
 
           <label for="face">Face:</label>
-          <wired-slider
-            id="face"
-            value="${this.characterSettings.face}"
-            min="0"
-            max="5"
-            @change="${(e) => this._updateSetting('face', parseInt(e.detail.value))}"
-          ></wired-slider>
+          <wired-input type="number" min="0" max="9" value="${this.face}" @input="${this.updateProperty('face')}"></wired-input>
 
-          <label for="faceitem">Face Item:</label>
-          <wired-slider
-            id="faceitem"
-            value="${this.characterSettings.faceitem}"
-            min="0"
-            max="9"
-            @change="${(e) => this._updateSetting('faceitem', parseInt(e.detail.value))}"
-          ></wired-slider>
+          <label for="faceItem">Face Item:</label>
+          <wired-input type="number" min="0" max="9" value="${this.faceItem}" @input="${this.updateProperty('faceItem')}"></wired-input>
 
-          <label for="hair">Hair Style (must have hair checked):</label>
-          <wired-slider
-            id="hair"
-            value="${this.characterSettings.hair}"
-            min="0"
-            max="9"
-            @change="${(e) => this._updateSetting('hair', parseInt(e.detail.value))}"
-          ></wired-slider>
+          <label for="hair">Hair:</label>
+          <wired-input type="number" min="0" max="9" value="${this.hair}" @input="${this.updateProperty('hair')}"></wired-input>
 
-          <label for="pants">Pants Style:</label>
-          <wired-slider
-            id="pants"
-            value="${this.characterSettings.pants}"
-            min="0"
-            max="9"
-            @change="${(e) => this._updateSetting('pants', parseInt(e.detail.value))}"
-          ></wired-slider>
+          <label for="pants">Pants:</label>
+          <wired-input type="number" min="0" max="9" value="${this.pants}" @input="${this.updateProperty('pants')}"></wired-input>
 
-          <label for="shirt">Shirt Style:</label>
-          <wired-slider
-            id="shirt"
-            value="${this.characterSettings.shirt}"
-            min="0"
-            max="9"
-            @change="${(e) => this._updateSetting('shirt', parseInt(e.detail.value))}"
-          ></wired-slider>
+          <label for="shirt">Shirt:</label>
+          <wired-input type="number" min="0" max="9" value="${this.shirt}" @input="${this.updateProperty('shirt')}"></wired-input>
 
-          <label for="skin">Skin Tone:</label>
-          <wired-slider
-            id="skin"
-            value="${this.characterSettings.skin}"
-            min="0"
-            max="9"
-            @change="${(e) => this._updateSetting('skin', parseInt(e.detail.value))}"
-          ></wired-slider>
-          
+          <label for="skin">Skin:</label>
+          <wired-input type="number" min="0" max="9" value="${this.skin}" @input="${this.updateProperty('skin')}"></wired-input>
+
           <label for="hatColor">Hat Color:</label>
+          <wired-input type="number" min="0" max="9" value="${this.hatColor}" @input="${this.updateProperty('hatColor')}"></wired-input>
+
+          <label for="hat">Hat:</label>
+          <wired-combo id="hat" .selected="${this.hat}"
+                @selected="${(e) => this._updateCheckbox('hat', e.detail.selected)}">
+                  <wired-item value="none">None</wired-item>
+                  <wired-item value="bunny">Bunny</wired-item>
+                  <wired-item value="coffee">Coffee</wired-item>
+                  <wired-item value="construction">Construction</wired-item>
+                  <wired-item value="cowboy">Cowboy</wired-item>
+                  <wired-item value="education">Education</wired-item>
+                  <wired-item value="knight">Knight</wired-item>
+                  <wired-item value="ninja">Ninja</wired-item>
+                  <wired-item value="party">Party</wired-item>
+                  <wired-item value="pirate">Pirate</wired-item>
+                  <wired-item value="watermelon">Watermelon</wired-item>
+                </wired-combo>
+
+ 
+          <label for="size">Character Size:</label>
+          <wired-slider 
+          id="size"
+          value="200" 
+          min="100" max="600" 
+          step="100"
+          @change="${(e) => this._updateCheckbox('size', parseFloat(e.detail.value))}">
+                </wired-slider>
           <wired-slider
-            id="hatColor"
-            value="${this.characterSettings.hatColor}"
-            min="0"
-            max="9"
-            @change="${(e) => this._updateSetting('hatColor', parseInt(e.detail.value))}"
-          ></wired-slider>
-
-          <wired-checkbox
-            ?checked="${this.characterSettings.fire}"
-            @change="${(e) => this._updateSetting('fire', e.target.checked)}"
-          >On Fire</wired-checkbox>
-
-          <wired-checkbox
-            ?checked="${this.characterSettings.walking}"
-            @change="${(e) => this._updateSetting('walking', e.target.checked)}"
-          >Walking</wired-checkbox>
-
-          <button @click="${this._generateShareLink}">
-            Generate Share Link
-          </button>
+            id="size"
+            value="${this.size}"
+            min="100"
+            max="600"
+            @change="${this._updateSize}"
+            ></wired-slider>
+          ${this._renderCheckbox("Fire", "fire")}
+          ${this._renderCheckbox("Walking", "walking")}
+          ${this._renderCheckbox("Circle", "circle")}
+          <wired-button class="share" @click="${this._generateShareLink}">Share</wired-button>
         </div>
       </div>
-      <div id="notification" class="notification"></div>
     `;
   }
 
-  _applySeedToSettings() {
-    const seed = this.characterSettings.seed;
-    const paddedSeed = seed.padStart(8, "0").slice(0, 8);
-    const values = paddedSeed.split("").map((v) => parseInt(v, 10));
-  
-    [
-      this.characterSettings.base,
-      this.characterSettings.face,
-      this.characterSettings.faceitem,
-      this.characterSettings.hair,
-      this.characterSettings.pants,
-      this.characterSettings.shirt,
-      this.characterSettings.skin,
-      this.characterSettings.hatColor,
-    ] = values;
-  
-    this.requestUpdate(); // Ensure UI updates after applying settings
-  }
-  
-
-  _generateSeed() {
-    const { base, face, faceitem, hair, pants, shirt, skin, hatColor } = this.characterSettings;
-    this.characterSettings.seed = `${base}${face}${faceitem}${hair}${pants}${shirt}${skin}${hatColor}`;
+  _renderCheckbox(label, key) {
+    return html`
+      <wired-checkbox
+        ?checked="${this[key]}"
+        @change="${(e) => this._updateCheckbox(key, e.target.checked)}"
+      >
+        ${label}
+      </wired-checkbox>
+    `;
   }
 
-  _updateSetting(key, value) {
-    this.characterSettings = { ...this.characterSettings, [key]: value };
-    this._generateSeed();
-    this.requestUpdate();
+  _updateSize(e) {
+    const newSize = e.detail.value;
+    this.size = newSize;
+    }
+
+  _updateSeed(key, value) {
+    const seedArray = this.seed.padEnd(10, "0").split("");
+    const index = this._getSeedIndex(key);
+    if (index >= 0) {
+      seedArray[index] = value;
+      this.seed = seedArray.join("");
+    }
+  }
+
+  _getSeedIndex(key) {
+    const mapping = {
+      accessories: 0,
+      base: 1,
+      face: 2,
+      faceItem: 3,
+      hair: 4,
+      pants: 5,
+      shirt: 6,
+      skin: 7,
+      hatColor: 8,
+    };
+    return mapping[key] ?? -1;
+  }
+
+  _updateCheckbox(key, value) {
+    this[key] = value;
   }
 
   _generateShareLink() {
-    const baseUrl = window.location.href.split("?")[0];
-    const params = new URLSearchParams({ seed: this.characterSettings.seed }).toString();
-    const shareLink = `${baseUrl}?${params}`;
-  
-    navigator.clipboard.writeText(shareLink).then(
-      () => this._showNotification("Link copied!"),
-      (err) => this._showNotification(`Error: ${err}`)
-    );
+    const link = `${location.origin}${location.pathname}?seed=${this.seed}&hat=${this.hat}&fire=${this.fire}&walking=${this.walking}&circle=${this.circle}`;
+    navigator.clipboard.writeText(link);
+    alert("Link copied to clipboard!");
   }
-
-  _showNotification(message) {
-    const notification = this.shadowRoot.getElementById("notification");
-    notification.textContent = message;
-    notification.classList.add("show");
-
-    setTimeout(() => {
-      notification.classList.remove("show");
-    }, 2000);
+  updateProperty(property) {
+    return (e) => {
+      const value = e.target.selected ? e.target.selected.value : e.target.value;
+      this[property] = value;
+      this.updateSeed();
+    };
   }
-
-  connectedCallback() {
-  super.connectedCallback();
-  const params = new URLSearchParams(window.location.search);
-
-  if (params.has("seed")) {
-    this.characterSettings.seed = params.get("seed");
-    this._applySeedToSettings(); // Apply the seed to settings
-  }
-  console.log("Seed on page load:", this.characterSettings.seed);
-  this.requestUpdate();
-}
 }
 
-customElements.define(RpgNew.tag, RpgNew);
+globalThis.customElements.define(RpgMe.tag, RpgMe);
+
+
+
