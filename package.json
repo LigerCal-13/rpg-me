@@ -1,6 +1,6 @@
 {
     "name": "@yourOrganization/rpg-me",
-    "version": "0.0.0",
+    "version": "0.0.1",
     "description": "Webcomponent rpg-me following hax / open-wc recommendations",
     "license": "Apache-2.0",
     "author": {
